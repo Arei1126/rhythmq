@@ -20,6 +20,10 @@ const BPM = 94;
 const SECTION_LENGTH = 4;
 const FONT_NAME =  "silver";
 
+const NumberOfSections = 16;
+const NumberOfGapSections = 0;
+const LongBars = [0,4,8,12,16];
+
 
 const noteImage = new Image();
 noteImage.src = "/resources/assets/note.png";
@@ -158,7 +162,14 @@ window.addEventListener("load", async ()=>{
 	const music = document.getElementById("music");
 	const scoreContainer = document.getElementById('score-container');
 	const inqClosure = document.getElementById('inq-closure');
-	const scoreCanvas = document.getElementById("scoreCanvas");
+	//const scoreCanvas = document.getElementById("scoreCanvas");
+	
+	const scoreCanvasLeft = document.getElementById("scoreCanvasLeft");
+	const scoreCanvasRight = document.getElementById("scoreCanvasRight");
+
+	const ScoreCtxLeft = scoreCanvasLeft.getContext("2d");
+	const ScoreCtxRight = scoreCanvasRight.getContext("2d");
+	
 	const answer0Number = document.getElementById("answer0-number");
 	const answer1Number = document.getElementById("answer1-number");
 
@@ -239,8 +250,8 @@ window.addEventListener("load", async ()=>{
 	let CurrentPos = 0;
 	let You = false;
 
-	const ScoreCtx = scoreCanvas.getContext("2d");
-	ScoreCtx.imageSmoothingEnabled = false;
+	ScoreCtxRight.imageSmoothingEnabled = false;
+	ScoreCtxLeft.imageSmoothingEnabled = false;
 	function ScoreBg(canvas, ctx){
 		ctx.fillStyle = "white";
 		ctx.fillRect(0,0,canvas.width, canvas.height);
@@ -259,11 +270,11 @@ window.addEventListener("load", async ()=>{
 
 
 
-		const barGap = canvas.width/14;
+		const barGap = canvas.width/NumberOfSections;
 		const barHeightUnit = canvas.height/7
 		const barStartY = canvas.height/2 - barHeightUnit/2;
 		const barEndY = canvas.height/2 + barHeightUnit/2;
-		for (let i = 1; i < 14; i++){
+		for (let i = 1; i < NumberOfSections; i++){
 			ctx.beginPath()
 			ctx.strokeStyle = "black";
 			ctx.lineWidth = 1;
@@ -272,7 +283,7 @@ window.addEventListener("load", async ()=>{
 			ctx.stroke();
 		}
 
-		const beatStart = [2,6,10]
+		const beatStart = LongBars;
 
 		const beatbarStartY = canvas.height/2 - 3*barHeightUnit/2;
 		const beatbarEndY = canvas.height/2 + 3*barHeightUnit/2;
@@ -287,7 +298,7 @@ window.addEventListener("load", async ()=>{
 	}
 
 	function ScoreDrawPosition(canvas, ctx, who, pos){  // posは1/8音符が0.25の-0.5~3に正規化
-		const barGap = canvas.width/14;
+		const barGap = canvas.width/NumberOfSections;
 		const text = who;
 		const barHeightUnit = canvas.height/7;
 		const h = barHeightUnit*5;
@@ -296,7 +307,8 @@ window.addEventListener("load", async ()=>{
 		ctx.strokeStyle = "red";
 		ctx.lineWidth = 3;
 		ctx.font = String(barHeightUnit) + "px " + FONT_NAME;
-		const offsetX = barGap*2;
+		//const offsetX = barGap*2;
+		const offsetX = barGap*NumberOfGapSections;
 		const y = canvas.height/2;
 		const x = canvas.width/3 * pos + offsetX;
 
@@ -310,15 +322,15 @@ window.addEventListener("load", async ()=>{
 		ctx.fillText(text,x,0);
 	}
 
-	function ScorePutRhythm(canvas, ctx, rhythm){
-		const barGap = canvas.width/14;
+	function ScorePutRhythm(canvas, ctx, rhythm, left){
+		const barGap = canvas.width/NumberOfSections;
 		ctx.strokeStyle = "black";
 		const noteW = noteImage.width/20;
 		const noteH = noteImage.height/20;
 		const barHeightUnit = canvas.height/5;
 		for (let i in rhythm){
 			if(rhythm[i]){
-				const offsetX = barGap*2;
+				const offsetX = barGap*NumberOfGapSections;
 				const x = offsetX + i*barGap;
 				const y = canvas.height/2;
 				//ctx.drawImage(noteImage, x-noteW/2, y-noteH/2, noteW,noteH);
@@ -326,8 +338,13 @@ window.addEventListener("load", async ()=>{
 				ctx.textAlign = "center";
 				ctx.textBaseline = "middle"
 				const size = canvas.height/5;
-				ctx.font = String(barHeightUnit) + "px " + FONT_NAME;
-				ctx.fillText(ICON_NOTE, x,y);
+				ctx.font = String(barHeightUnit/2) + "px " + FONT_NAME;
+				if(left){
+					ctx.fillText(ICON_NOTE, x + canvas.width,y);
+				}
+				else{
+					ctx.fillText(ICON_NOTE, x,y);
+				}
 
 			}
 		}
@@ -335,14 +352,14 @@ window.addEventListener("load", async ()=>{
 	}
 
 	function ScorePutInput(canvas, ctx, pos, type){		// posは1/8音符が0.25の-0.5~3に正規化
-		const barGap = canvas.width/14;
+		const barGap = canvas.width/NumberOfSections;
 		const barHeightUnit = canvas.height/5;
 		const h = barHeightUnit*5;
 		
 		ctx.fillStyle = "black";
 		ctx.strokeStyle = "black";
-		ctx.font = String(barHeightUnit) + "px " + FONT_NAME;
-		const offsetX = barGap*2;
+		ctx.font = String(barHeightUnit/2) + "px " + FONT_NAME;
+		const offsetX = barGap*0;
 		const y = canvas.height/2;
 		const x = canvas.width/3 * pos + offsetX;
 
@@ -491,7 +508,7 @@ window.addEventListener("load", async ()=>{
 
 					}
 				}
-				
+
 
 				break;
 			case 2:		// これはチュートリアル
@@ -500,41 +517,47 @@ window.addEventListener("load", async ()=>{
 
 				if(Doing){
 
-				const currentTime = AudioCtx.currentTime;
-				const timeDelta = currentTime - prevTime;
-				const currentInputTime = clapDetector.Now;
+					const currentTime = AudioCtx.currentTime;
+					const timeDelta = currentTime - prevTime;
+					const currentInputTime = clapDetector.Now;
 
-				const currentTimeFromStart = currentTime - sessionStartTime;
+					const currentTimeFromStart = currentTime - sessionStartTime;
 
-				const q = parseInt(currentTimeFromStart/MeasureLength);
-				const r = currentTimeFromStart % MeasureLength;
+					const q = parseInt(currentTimeFromStart/MeasureLength);
+					const r = currentTimeFromStart % MeasureLength;
 
-				let w = null;
-				if(q % 2 == 0){
-					w = "お手本"
-					You = false;
-					answer0Container.style.color = "lightgray";
-					answer1Container.style.color = "lightgray";
-					answer0Number.style.color = "lightgray";
-					answer1Number.style.color = "lightgray";
-				}
-				else{
-					w = "あなた";
-					You = true;
-					answer0Container.style.color = "black";
-					answer1Container.style.color = "black";
-					answer0Number.style.color = "black";
-					answer1Number.style.color = "black";
-				}
+					let w = null;
+					if(q % 2 == 0){
+						w = "お手本"
+						You = false;
+						answer0Container.style.color = "black";
+						answer1Container.style.color = "black";
+						answer0Number.style.color = "black";
+						answer1Number.style.color = "black";
+					}
+					else{
+						w = "あなた";
+						You = true;
+						answer0Container.style.color = "black";
+						answer1Container.style.color = "black";
+						answer0Number.style.color = "black";
+						answer1Number.style.color = "black";
+					}
 
-				const pos = r/MeasureLength * 3
-				CurrentPos = pos;
+					const pos = r/MeasureLength * 3
+					CurrentPos = pos;
 
-				ScoreBg(scoreCanvas,ScoreCtx);
+					ScoreBg(scoreCanvasLeft,ScoreCtxLeft);
+					ScoreBg(scoreCanvasRight,ScoreCtxRight);
 
+					if(w == "お手本"){
+						ScoreDrawPosition(scoreCanvasLeft, ScoreCtxLeft, w, pos);
+					}
+					else{
+						ScoreDrawPosition(scoreCanvasRight, ScoreCtxRight, w, pos);
+					}
 
-				ScoreDrawPosition(scoreCanvas, ScoreCtx, w, pos);
-
+					/*
 				if(pos > 2.5){
 					let w2 = null;
 					if(q % 2 == 0){
@@ -546,6 +569,7 @@ window.addEventListener("load", async ()=>{
 
 					ScoreDrawPosition(scoreCanvas, ScoreCtx, w2, pos-3);
 				}
+				*/
 
 				// ここから問題文
 				const questionNumber = parseInt(q / 2);
@@ -565,8 +589,9 @@ window.addEventListener("load", async ()=>{
 
 
 						// ここからリズム
-						ScorePutRhythm(scoreCanvas, ScoreCtx, QAS[n]["score"]);
-						
+						ScorePutRhythm(scoreCanvasLeft, ScoreCtxLeft, QAS[n]["score"],true);
+						ScorePutRhythm(scoreCanvasRight, ScoreCtxRight, QAS[n]["score"],false);
+
 
 						const ato = QAS.length - n - 1;
 						if(ato == 0){
@@ -608,19 +633,47 @@ window.addEventListener("load", async ()=>{
 							
 
 						// ここから回答の記録をしたい
-						if(You){
-							const sectionTime = currentInputTime - SectionStartTime - MeasureLength;  // Youがスタートしてから、いままでの時間
-							const recentInputs = InputBuffer.filter(input => (currentInputTime - input.time) <= sectionTime*1.05);
+						if(true){
+							let sectionTime = 0;
+							let recentInputs = null;
 
-							for (const input of recentInputs){
-							//for (let i = recentInputs.length -1; i >= 0; i--){
+							sectionTime = currentInputTime - SectionStartTime;
+							recentInputs = InputBuffer.filter(input => (currentInputTime - input.time) <= sectionTime*1.05);
 
-								const pos = (input["time"] - SectionStartTime - MeasureLength)/MeasureLength * 3
-								const type = input["type"]; // hittingTable, loudVoice, handClap
-								ScorePutInput(scoreCanvas, ScoreCtx, pos, type);	
+							/*
+							if(w == "お手本"){
+								sectionTime = currentInputTime - SectionStartTime;  // Youがスタートしてから、いままでの時間
+								recentInputs = InputBuffer.filter(input => (currentInputTime - input.time) <= sectionTime*1.05);
+							
+							}
+							else{	
+								sectionTime = currentInputTime - SectionStartTime - MeasureLength;  // Youがスタートしてから、いままでの時間
+								recentInputs = InputBuffer.filter(input => (currentInputTime - input.time) <= sectionTime*1.05);
 
 
 							}
+
+							for (const input of recentInputs){
+
+								const pos = (input["time"] - SectionStartTime - MeasureLength)/MeasureLength * 3
+								const type = input["type"]; // hittingTable, loudVoice, handClap
+								ScorePutInput(scoreCanvasRight, ScoreCtxRight, pos, type);	
+
+
+							}
+							*/
+
+							for (const input of recentInputs){
+
+								const pos = (input["time"] - SectionStartTime )/MeasureLength * 3
+								const type = input["type"]; // hittingTable, loudVoice, handClap
+								ScorePutInput(scoreCanvasLeft, ScoreCtxLeft, pos, type);
+								ScorePutInput(scoreCanvasRight, ScoreCtxRight, pos - 3 , type);
+
+
+							}
+
+
 							// ここから回答を丸付け
 							const anss = [answer0Number, answer1Number];
 

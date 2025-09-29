@@ -136,14 +136,22 @@ canvas.detector {
 	margin-left: 1em;
 }
 
-.score-container{
-	display: flex;
-	justify-content: center;
+#score-container{
+    display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    align-items: center;
+    align-content: space-around;
+    justify-content: flex-start;
 }
 
-#scoreCanvas{
-	width: 100%;
-	max-width: 100%;
+#scoreCanvasLeft{
+	width: 50%;
+	max-width: 50%;
+}
+#scoreCanvasRight{
+	width: 50%;
+	max-width: 50%;
 }
 
 #tutorialVideo{
