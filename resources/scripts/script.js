@@ -92,9 +92,6 @@ const TEST_SCORE = {
 
 let Data = TEST_SCORE2;
 
-
-
-
 window.addEventListener("load", async ()=>{
 
 	
