@@ -7,4 +7,4 @@ PWA Template - The template for Progressive Web App
 ## OPTION
 
 ## Web Demo
-[here](https://arei1126.github.io/)
+[here](https://arei1126.github.io/rhythmq/index.html)
